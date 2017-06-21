@@ -1,9 +1,10 @@
 from data import *
 from copy import copy, deepcopy
 import random
+import operator
 
 data_teste = get_data('teste.json')
-MAX_V = 100
+MAX_V = 180
 DOMINANTES = []
 
 
@@ -68,7 +69,7 @@ def nova_solucao(solucao, a, preferenias, dominantes):
 			solucao.append(elemento_atual)
 			candidatos = [x for x in candidatos if x is not elemento_atual]
 
-	if len(solucao) == 11:
+	if len(solucao) == 11 and solucao not in dominantes:
 		dominantes.append(solucao)
 
 	return solucao
@@ -81,7 +82,6 @@ def busca_local(solucao, a, preferenias, dominantes):
 		elemento['marcado'] = False
 
 	while hasElemento(solucao_aux):
-		print(f(solucao, 'pontuacao'))
 		solucao_ajustada = ajusta_array(deepcopy(solucao_aux))
 		solucao_nova = nova_solucao(deepcopy(solucao_ajustada), a, preferenias, dominantes)
 
@@ -95,6 +95,13 @@ def busca_local(solucao, a, preferenias, dominantes):
 					elemento['marcado'] = True
 					break
 
+def grasp(iteracoes, a):
+	for i in range(0, iteracoes):
+		arr = nova_solucao([], a, 0, DOMINANTES)
+		busca_local(arr, a, 0, DOMINANTES)
 
-arr = nova_solucao([], 0.6, 0, DOMINANTES)
-busca_local(arr, 0.6, 0, DOMINANTES)
+	DOMINANTES.sort(key=lambda x: f(x, 'pontuacao'), reverse=True)
+
+	return DOMINANTES
+
+grasp(3, 0.5)
