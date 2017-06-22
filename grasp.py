@@ -7,6 +7,12 @@ data_teste = get_data('teste.json')
 MAX_V = 180
 DOMINANTES = []
 
+def melhor_solucao():
+	DOMINANTES.sort(key=lambda x: f(x, 'pontuacao'), reverse=True)
+	try:
+		return f(DOMINANTES[0], 'pontuacao')
+	except:
+		return 0
 
 def printa_solucao(arr):
 	for elemento in arr:
@@ -70,7 +76,8 @@ def nova_solucao(solucao, a, preferenias, dominantes):
 			candidatos = [x for x in candidatos if x is not elemento_atual]
 
 	if len(solucao) == 11 and solucao not in dominantes:
-		dominantes.append(solucao)
+		if f(solucao, 'pontuacao') >= melhor_solucao():
+			dominantes.append(solucao)
 
 	return solucao
 
@@ -100,8 +107,6 @@ def grasp(iteracoes, a):
 		arr = nova_solucao([], a, 0, DOMINANTES)
 		busca_local(arr, a, 0, DOMINANTES)
 
-	DOMINANTES.sort(key=lambda x: f(x, 'pontuacao'), reverse=True)
-
 	return DOMINANTES
 
-grasp(3, 0.5)
+grasp(10, 0.5)
