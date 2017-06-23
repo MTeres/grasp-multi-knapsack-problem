@@ -4,24 +4,21 @@ import random
 import operator
 
 data_teste = get_data('teste.json')
-MAX_V = 180
-DOMINANTES = []
-
-def melhor_solucao():
-	DOMINANTES.sort(key=lambda x: f(x, 'pontuacao'), reverse=True)
-	try:
-		return f(DOMINANTES[0], 'pontuacao')
-	except:
-		return 0
-
-def printa_solucao(arr):
-	for elemento in arr:
-		print(elemento)
+MAX_V = 100
+DOMINANTE = {}
+LIMITADORES = {'GOL': 1, 'ATA': 2, 'MEC': 4, 'ZAG': 2, 'LAT': 2}
 
 def f(arr, tipo):
 	r = 0
 	for elemento in arr:
 		r+= elemento[tipo]
+	return r
+
+def quantidade_na_posicao(arr, posi):
+	r = 0
+	for elemento in arr:
+		if elemento['posicao'] == posi:
+			r+= 1
 	return r
 
 def ajusta_array(arr):
@@ -47,12 +44,17 @@ def teste_solucao(solucao, novo_elemento):
 		return False
 
 	valor = sum(x['preco'] for x in solucao) + novo_elemento['preco']
+	
 	if valor > MAX_V:
 		return False
 	
+	posicao = novo_elemento['posicao']
+	if quantidade_na_posicao(solucao, posicao) == LIMITADORES[posicao]:
+		return False
+
 	return True
 
-def nova_solucao(solucao, a, preferenias, dominantes):
+def nova_solucao(solucao, a, preferenias):
 	# buscando elementos nao contidos na solucao, ordedando por 'e'
 	candidatos = [x for x in data_teste if x not in solucao]
 	candidatos.sort(key=lambda x: x['e'], reverse=True)
@@ -68,6 +70,7 @@ def nova_solucao(solucao, a, preferenias, dominantes):
 		elemento_atual = random.choice(candidatos)
 
 	for elemento_atual in candidatos:
+		# caso ja tenha 11 jogadores nao tem necessidade
 		if len(solucao) == 11:
 			break
 
@@ -75,13 +78,14 @@ def nova_solucao(solucao, a, preferenias, dominantes):
 			solucao.append(elemento_atual)
 			candidatos = [x for x in candidatos if x is not elemento_atual]
 
-	if len(solucao) == 11 and solucao not in dominantes:
-		if f(solucao, 'pontuacao') >= melhor_solucao():
-			dominantes.append(solucao)
+	if len(solucao) == 11:
+		global DOMINANTE
+		if f(solucao, 'pontuacao') >= f(DOMINANTE, 'pontuacao'):
+			DOMINANTE = solucao
 
 	return solucao
 
-def busca_local(solucao, a, preferenias, dominantes):
+def busca_local(solucao, a, preferenias):
 	solucao_aux = deepcopy(solucao)
 	solucao_aux.sort(key=lambda x: x['e'], reverse=True)
 
@@ -90,7 +94,7 @@ def busca_local(solucao, a, preferenias, dominantes):
 
 	while hasElemento(solucao_aux):
 		solucao_ajustada = ajusta_array(deepcopy(solucao_aux))
-		solucao_nova = nova_solucao(deepcopy(solucao_ajustada), a, preferenias, dominantes)
+		solucao_nova = nova_solucao(deepcopy(solucao_ajustada), a, preferenias)
 
 		if f(solucao_nova, 'pontuacao') > f(solucao, 'pontuacao'):
 			solucao = deepcopy(solucao_nova)
@@ -104,9 +108,9 @@ def busca_local(solucao, a, preferenias, dominantes):
 
 def grasp(iteracoes, a):
 	for i in range(0, iteracoes):
-		arr = nova_solucao([], a, 0, DOMINANTES)
-		busca_local(arr, a, 0, DOMINANTES)
+		arr = nova_solucao([], a, 0)
+		busca_local(arr, a, 0)
 
-	return DOMINANTES
-
-grasp(10, 0.5)
+grasp(100, 0.5)
+print(f(DOMINANTE, 'preco'))
+print(f(DOMINANTE, 'pontuacao'))
